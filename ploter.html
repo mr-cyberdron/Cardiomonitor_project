@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)http://smoothiecharts.org/example-final.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Smoothie Chart Example</title>
+    <script type="text/javascript" src="sm.js"></script>
+  </head>
+  <body data-new-gr-c-s-check-loaded="14.1006.0" data-gr-ext-installed="">
+
+    <h1>Smoothie Example</h1>
+    <canvas id="mycanvas" width="400" height="100"></canvas>
+    <script type="text/javascript">
+
+      // Random data
+      var line1 = new TimeSeries();
+      var line2 = new TimeSeries();
+      setInterval(function() {
+        line1.append(new Date().getTime(), 1);
+        line2.append(new Date().getTime(), Math.random());
+      }, 1000);
+
+      var smoothie = new SmoothieChart({ grid: { strokeStyle: 'rgb(125, 0, 0)', fillStyle: 'rgb(60, 0, 0)', lineWidth: 1, millisPerLine: 250, verticalSections: 6 } });
+      smoothie.addTimeSeries(line1, { strokeStyle: 'rgb(0, 255, 0)', fillStyle: 'rgba(0, 255, 0, 0.4)', lineWidth: 3 });
+      smoothie.addTimeSeries(line2, { strokeStyle: 'rgb(255, 0, 255)', fillStyle: 'rgba(255, 0, 255, 0.3)', lineWidth: 3 });
+
+      smoothie.streamTo(document.getElementById("mycanvas"), 1000);
+    </script>
+
+    <p><a href="http://smoothiecharts.org/tutorial.html">Return to tutorial</a></p>
+  
+  
+
+<div class="smoothie-chart-tooltip" style="position: absolute; display: none; top: 179px; left: 252px;"></div></body></html>

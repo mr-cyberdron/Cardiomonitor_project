@@ -1,0 +1,154 @@
+ <!DOCTYPE html>
+<html>
+  <head>
+    <title>ECG</title>
+  </head>
+ 
+
+<body>
+<h1 align="center">Cardiomonitors</h1>
+<p><input type="button" value="load data" onclick="onpress()"></p>
+<div id="pat1" style="height: 300px; width: 100%;"></div>
+<div id="pat2" style="height: 300px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+
+<!-- Створюємо об'єкт, який виводить повідомлення-->
+<div id="chat"></div>
+<!-- Створюємо об'єкт, в який вписуємо текст-->
+<input id="msg" type="text">
+<style>
+input { border: 1px solid green; }
+</style>
+
+
+
+<script>
+  const CHAR_RETURN = 13;
+  //url веб сокет серверу
+  const socket = new WebSocket('ws://localhost:8000/');
+  console.log(socket)
+  //беремо ссилки на HTML елементи
+  const chat = document.getElementById('chat');
+  const msg = document.getElementById('msg');
+  //автоматично натискає на поле мемедж
+  msg.focus();
+
+  // функція writeline
+  const writeLine = text => {
+    //створюємо новий елемент
+    const line = document.createElement('div');
+    // встявляємо в блок вмісткість
+    line.innerHTML = `<p>${text}</p>`;
+    // додаємо новий елемент
+    chat.appendChild(line);
+  };
+  //події 
+  socket.onopen = () => {
+    writeLine('connected');
+  };
+
+  socket.onclose = () => {
+    writeLine('closed');
+  };
+
+// змінні лічильників
+  var datacounter1 = 0
+  var datacounter2 = 0
+  var dataPoints1 = []
+  var dataPoints2 = []
+  socket.onmessage = event => {
+    //writeLine(event.data);
+
+      var dt = event.data
+      var arrr = JSON.parse(dt);
+      var idd = arrr.id;
+      var dtt = arrr.DATA;
+    // кожний клієнт відсилає данні з унікальним Id по цьому id відбувається визначення
+    // до якого монітору належить сигнал
+    // якщо перший монітор:
+          if(idd === 1) {
+     
+
+      //-------------Графіки----------------//
+    var chart = new CanvasJS.Chart("pat1",
+    {
+      title:{
+      text: "monitor1"  
+      },
+      data: [
+      {        
+        type: "line",
+        dataPoints: dataPoints1
+      }
+      ]
+    });
+    //створюємо масив точок
+    for(var i = 0;i<827;i++){
+      dataPoints1.push({x:datacounter1, y: dtt[i]})
+      //додаємо відлік часу перерахований в секунди по частоті дискретизації
+      datacounter1 += (1/100)
+    }
+    //якщо відмальовано більше 100 секунд
+    if (datacounter1 > 100){
+      //обнуляємо вектори
+      datacounter1 = 0
+      dataPoints1 = []
+    }
+    //будуємо графік
+    chart.render();
+      }
+
+      //для 2 монітору
+      else if (idd === 2) {
+    var chart = new CanvasJS.Chart("pat2",
+    {
+      title:{
+      text: "monitor2"  
+      },
+      data: [
+      {        
+        type: "line",
+        dataPoints: dataPoints2
+      }
+      ]
+    });
+    for(var i = 0;i<827;i++){
+      dataPoints2.push({x:datacounter2, y: dtt[i]})
+      datacounter2 += (1/100)
+    }
+    if (datacounter2 > 100){
+      datacounter2 = 0
+      dataPoints2 = []
+    }
+    chart.render();
+  }
+
+     
+  };
+  
+  //по натисканні на кнопку load
+  // на сервер відправляється код команди
+function onpress() {
+  socket.send(123456);
+}
+
+  // обробник натискання колавші ентер(компонент для ручного вводу точок)
+  msg.addEventListener('keydown', event => {
+      // якщо ентер
+    if (event.keyCode === CHAR_RETURN) {
+      // берему поточне речення
+        const s = msg.value;
+        //обнуляємо щоб перевід строки не попав в строку
+      msg.value = '';
+      //виводимо на екран
+      writeLine(s);
+      //відправляємо в сокет
+      socket.send(s);
+    }
+  });
+
+</script>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+</body>
+</html>
